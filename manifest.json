@@ -1,0 +1,20 @@
+{
+  "name": "Outlook Not Great",
+  "short_name": "Outlook Not Great",
+  "description": "Unsolicited advice from 1987. Snarky, no-nonsense guidance straight from the GenX playbook.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#060608",
+  "theme_color": "#060608",
+  "orientation": "portrait",
+  "lang": "en",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
