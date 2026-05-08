@@ -1,383 +1,503 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Outlook Not Great</title>
 <meta name="description" content="Unsolicited advice from 1987. Snarky, no-nonsense guidance straight from the GenX playbook.">
 <meta name="theme-color" content="#060608">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.png">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Crimson+Text:ital@0;1&family=Oswald:wght@200;300;400;700&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { min-height: 100vh; background: #060608; display: flex; align-items: center; justify-content: center; font-family: 'Special Elite', cursive; overflow: hidden; position: relative; }
-  
-  /* Background system - different for each screen */
-  .bg-layer { position: fixed; inset: 0; z-index: 0; background-size: cover; background-position: center; background-repeat: no-repeat; opacity: 0; transition: opacity 0.5s ease; }
-  .bg-layer.active { opacity: 1; }
-  #bg-welcome { background-image: url('opening_graphic.png'); }
-  #bg-ask { background-image: url('opening_graphic.png'); }
-  #bg-thinking { background-image: url('thinking_scene.png'); }
-  #bg-answer { background: #040406; } /* Dark background for answer with large triangle */
-  
-  .scene { position: fixed; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center; }
-  .triangle-content { position: relative; z-index: 2; width: min(320px, 85vw); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0; pointer-events: none; }
-  .triangle-content > * { pointer-events: auto; }
-  
-  .screen { display: none; }
-  .screen.active { display: flex; flex-direction: column; align-items: center; width: 100%; animation: pop 0.35s cubic-bezier(0.22,0.61,0.36,1) forwards; }
-  @keyframes pop { from { opacity:0; transform:scale(0.94); } to { opacity:1; transform:scale(1); } }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { 
+  width: 100%; 
+  height: 100%; 
+  overflow: hidden; 
+  background: #000;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
 
-  .logo-wrap { margin-bottom: 4px; line-height: 1; }
-  .logo-outlook { font-family: 'Bebas Neue', sans-serif; font-size: clamp(42px, 11vw, 62px); color: #ffffff; display: block; letter-spacing: 6px; text-shadow: 0 0 20px rgba(0,0,80,0.5); }
-  .logo-not { font-family: 'Bebas Neue', sans-serif; font-size: clamp(18px, 4vw, 24px); color: rgba(255,255,255,0.6); letter-spacing: 10px; display: block; margin: -6px 0; }
-  .logo-great { font-family: 'Bebas Neue', sans-serif; font-size: clamp(38px, 10vw, 56px); color: #ffffff; display: block; letter-spacing: 6px; text-shadow: 0 0 20px rgba(0,0,80,0.5); }
-  .tagline { font-family: 'Oswald', sans-serif; font-size: clamp(10px, 2.2vw, 12px); color: rgba(255,255,255,0.7); letter-spacing: 2px; text-transform: uppercase; font-weight: 300; margin: 8px 0 4px; }
-  .entertainment-notice { position: fixed; top: 14px; left: 0; right: 0; text-align: center; font-family: 'Oswald', sans-serif; font-size: clamp(9px, 2vw, 11px); color: rgba(255,255,255,0.75); letter-spacing: 4px; text-transform: uppercase; font-weight: 300; z-index: 5; pointer-events: none; }
-  .begin-btn { padding: 11px 26px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.4); color: #ffffff; font-family: 'Oswald', sans-serif; font-size: clamp(11px, 2.5vw, 13px); letter-spacing: 3px; text-transform: uppercase; cursor: pointer; font-weight: 400; transition: all 0.2s; }
-  .begin-btn:hover { background: rgba(0,0,0,0.8); }
+.screen { 
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%; 
+  display: none;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.screen.active { display: block; }
 
-  .ask-label { font-family: 'Oswald', sans-serif; font-size: clamp(10px, 2.2vw, 12px); letter-spacing: 3px; color: rgba(255,255,255,0.85); text-transform: uppercase; font-weight: 300; margin-bottom: 10px; }
-  .ask-invite { font-family: 'Special Elite', cursive; font-size: clamp(18px, 4.5vw, 24px); color: rgba(255,255,255,0.95); text-align: center; margin-bottom: 6px; }
-  .ask-invite2 { font-family: 'Special Elite', cursive; font-size: clamp(12px, 2.8vw, 15px); color: rgba(255,255,255,0.6); text-align: center; margin-bottom: 18px; line-height: 1.5; font-style: italic; }
-  .cat-grid { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-bottom: 10px; }
-  .cat-btn { padding: 5px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.75); font-family: 'Oswald', sans-serif; font-size: clamp(9px, 2vw, 11px); letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; font-weight: 300; }
-  .cat-btn:hover, .cat-btn.selected { border-color: #fff; color: #fff; background: rgba(0,0,0,0.5); }
-  textarea { width: 100%; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.3); color: #ffffff; font-family: 'Special Elite', cursive; font-size: clamp(12px, 3vw, 15px); line-height: 1.5; padding: 9px; resize: none; height: 75px; outline: none; transition: border-color 0.2s; border-radius: 1px; }
-  textarea::placeholder { color: rgba(255,255,255,0.4); font-style: italic; }
-  textarea:focus { border-color: rgba(255,255,255,0.7); }
-  .ask-btn { width: 100%; margin-top: 9px; padding: 12px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.4); color: #ffffff; font-family: 'Oswald', sans-serif; font-size: clamp(11px, 2.5vw, 13px); letter-spacing: 3px; text-transform: uppercase; cursor: pointer; font-weight: 400; transition: all 0.2s; }
-  .ask-btn:hover { background: rgba(0,0,0,0.8); }
+#welcome { background-image: url('opening_graphic.png'); }
+#ask { background-image: url('opening_graphic.png'); }
+#thinking { background-image: url('thinking_scene.png'); }
+#answer { background: #040406; }
 
-  #thinking-screen { justify-content: center; gap: 10px; }
-  .think-emoji { font-size: clamp(32px, 8vw, 46px); animation: shrug 1.2s ease-in-out infinite; }
-  @keyframes shrug { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
-  .think-lines { color: rgba(255,255,255,0.85); font-size: clamp(12px, 3vw, 15px); line-height: 2; text-align: center; }
-  .think-lines span { display: block; opacity: 0; animation: fadein 0.4s ease forwards; }
-  .think-lines span:nth-child(1) { animation-delay: 0.2s; }
-  .think-lines span:nth-child(2) { animation-delay: 0.7s; }
-  .think-lines span:nth-child(3) { animation-delay: 1.2s; }
-  @keyframes fadein { to { opacity:1; } }
+.top-notice {
+  position: fixed;
+  top: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: rgba(255,255,255,0.7);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  z-index: 100;
+  pointer-events: none;
+}
 
-  /* Answer screen with LARGE triangle */
-  #response-screen { position: relative; width: 100%; height: 100%; }
-  #answer-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
-  .answer-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; }
-  
-  .response-text { 
-    font-family: 'Bebas Neue', sans-serif; 
-    color: #ffffff; 
-    font-size: clamp(22px, 5.5vw, 32px); 
-    line-height: 1.15; 
-    text-align: center; 
-    text-shadow: 0 2px 10px rgba(0,0,60,0.9); 
-    max-width: 85%; 
-    letter-spacing: 2px;
-    margin-bottom: 40px;
-    position: relative;
-    top: -10vh; /* Move text higher up in the triangle */
-  }
-  
-  .shake-again { 
-    padding: 9px 20px; 
-    background: rgba(0,0,0,0.5); 
-    border: 1px solid rgba(255,255,255,0.4); 
-    color: rgba(255,255,255,0.95); 
-    font-family: 'Oswald', sans-serif; 
-    font-size: clamp(10px, 2vw, 12px); 
-    letter-spacing: 3px; 
-    text-transform: uppercase; 
-    cursor: pointer; 
-    transition: all 0.2s; 
-    font-weight: 400;
-    position: absolute;
-    bottom: 100px;
-  }
-  .shake-again:hover { background: rgba(0,0,0,0.8); border-color: #fff; }
+.content-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
 
-  .promo-strip { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); width: min(290px, 80vw); background: rgba(0,0,0,0.88); border: 1px solid rgba(255,255,255,0.1); padding: 7px 12px 9px; text-align: center; z-index: 10; }
-  .promo-disclaimer { font-family: 'Oswald', sans-serif; font-size: 7px; color: rgba(255,255,255,0.18); letter-spacing: 2px; text-transform: uppercase; font-weight: 200; margin-bottom: 5px; }
-  .promo-line1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(15px, 3.8vw, 19px); color: #f0ece4; margin-bottom: 4px; letter-spacing: 3px; }
-  .promo-link { display: block; padding: 6px 16px; background: #f0ece4; color: #111; font-family: 'Oswald', sans-serif; font-size: clamp(9px, 1.8vw, 11px); letter-spacing: 2px; text-transform: uppercase; font-weight: 700; text-decoration: none; transition: all 0.2s; margin: 0 auto 5px; width: fit-content; }
-  .promo-link:hover { background: #ddd; }
-  .promo-code { font-family: 'Oswald', sans-serif; font-size: clamp(8px, 1.6vw, 10px); color: rgba(255,255,255,0.75); letter-spacing: 2px; font-weight: 300; }
+.ask-content {
+  background: rgba(0,0,0,0.7);
+  padding: 30px 20px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
 
-  .bottom-credit { position: fixed; bottom: 6px; left: 0; right: 0; text-align: center; font-family: 'Oswald', sans-serif; font-size: 8px; color: rgba(255,255,255,0.08); letter-spacing: 2px; text-transform: uppercase; font-weight: 200; z-index: 1; }
-  .footer-link { position: fixed; bottom: 6px; right: 16px; font-family: 'Oswald', sans-serif; font-size: 8px; color: rgba(255,255,255,0.15); letter-spacing: 2px; text-transform: uppercase; cursor: pointer; z-index: 5; text-decoration: none; }
-  .footer-link:hover { color: rgba(255,255,255,0.35); }
+.ask-title {
+  color: #fff;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
 
-  #privacy-screen { position: fixed; inset: 0; background: #060608; z-index: 100; display: none; overflow-y: auto; padding: 40px 24px; }
-  #privacy-screen.show { display: block; }
-  .privacy-content { max-width: 480px; margin: 0 auto; }
-  .privacy-content h2 { font-family: 'Bebas Neue', sans-serif; color: #f0ece4; font-size: 26px; letter-spacing: 4px; margin-bottom: 20px; }
-  .privacy-content p { color: rgba(255,255,255,0.65); font-size: 14px; line-height: 1.8; margin-bottom: 14px; }
-  .privacy-content strong { color: #f0ece4; }
-  .privacy-back { margin-top: 24px; padding: 10px 22px; background: transparent; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.6); font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; font-weight: 300; }
+.ask-subtitle {
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.cat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.cat-btn {
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.cat-btn:hover, .cat-btn.selected {
+  background: rgba(255,255,255,0.2);
+  border-color: #fff;
+}
+
+.shake-btn {
+  width: 100%;
+  padding: 15px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: #fff;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+
+.shake-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.think-content {
+  color: #fff;
+  font-size: 18px;
+  line-height: 2;
+}
+
+.think-emoji {
+  font-size: 48px;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.think-content div {
+  opacity: 0;
+  animation: fadeIn 0.4s ease forwards;
+}
+
+.think-content div:nth-child(2) { animation-delay: 0.5s; }
+.think-content div:nth-child(3) { animation-delay: 1s; }
+.think-content div:nth-child(4) { animation-delay: 1.5s; }
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+#answer-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.answer-wrap {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.answer-text {
+  color: #fff;
+  font-size: 28px;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+  margin-bottom: 60px;
+  line-height: 1.3;
+  letter-spacing: 1px;
+  max-width: 80%;
+}
+
+.again-btn {
+  padding: 12px 30px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.5);
+  color: #fff;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+
+.again-btn:hover {
+  background: rgba(0,0,0,0.8);
+}
+
+.promo {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 320px;
+  background: rgba(0,0,0,0.9);
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 15px;
+  text-align: center;
+  display: none;
+  z-index: 50;
+}
+
+.promo.show { display: block; }
+
+.promo-title {
+  color: #f0ece4;
+  font-size: 18px;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+
+.promo-link {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #f0ece4;
+  color: #000;
+  text-decoration: none;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.promo-code {
+  color: rgba(255,255,255,0.7);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.footer {
+  position: fixed;
+  bottom: 10px;
+  right: 20px;
+  color: rgba(255,255,255,0.2);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  z-index: 100;
+}
+
+.footer:hover {
+  color: rgba(255,255,255,0.4);
+}
+
+#privacy {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #060608;
+  display: none;
+  overflow-y: auto;
+  z-index: 200;
+  padding: 40px 20px;
+}
+
+#privacy.show { display: block; }
+
+.privacy-content {
+  max-width: 600px;
+  margin: 0 auto;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.7;
+}
+
+.privacy-content h1 {
+  color: #f0ece4;
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.privacy-content h2 {
+  color: #f0ece4;
+  font-size: 18px;
+  margin-top: 25px;
+  margin-bottom: 10px;
+}
+
+.privacy-content p {
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.back-btn {
+  margin-top: 30px;
+  padding: 12px 25px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.7);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
 
-<!-- Background layers -->
-<div class="bg-layer active" id="bg-welcome"></div>
-<div class="bg-layer" id="bg-ask"></div>
-<div class="bg-layer" id="bg-thinking"></div>
-<div class="bg-layer" id="bg-answer"></div>
+<div class="top-notice">For Entertainment Purposes Only</div>
 
-<p class="entertainment-notice">For Entertainment Purposes Only</p>
+<!-- Welcome Screen -->
+<div class="screen active" id="welcome" onclick="goTo('ask')"></div>
 
-<div class="scene">
-  <div class="triangle-content">
-
-    <div class="screen active" id="welcome-screen" onclick="showScreen('ask-screen')" style="cursor: pointer;">
-      <!-- Content removed - image has everything -->
-    </div>
-
-    <div class="screen" id="ask-screen">
-      <p class="ask-invite">Close your eyes.</p>
-      <p class="ask-invite2">Ask the universe what you need to hear today.</p>
+<!-- Ask Screen -->
+<div class="screen" id="ask">
+  <div class="content-wrap">
+    <div class="ask-content">
+      <div class="ask-title">Close your eyes.</div>
+      <div class="ask-subtitle">Ask the universe what you need to hear today.</div>
       <div class="cat-grid">
-        <button class="cat-btn" onclick="selectCat(this,'love')">Love</button>
-        <button class="cat-btn" onclick="selectCat(this,'work')">Work</button>
-        <button class="cat-btn" onclick="selectCat(this,'money')">Money</button>
-        <button class="cat-btn" onclick="selectCat(this,'family')">Family</button>
-        <button class="cat-btn" onclick="selectCat(this,'general')">Everything</button>
+        <button class="cat-btn" onclick="selectCat('love')">Love</button>
+        <button class="cat-btn" onclick="selectCat('work')">Work</button>
+        <button class="cat-btn" onclick="selectCat('money')">Money</button>
+        <button class="cat-btn" onclick="selectCat('family')">Family</button>
+        <button class="cat-btn" onclick="selectCat('general')">Everything</button>
       </div>
-      <button class="ask-btn" onclick="askQuestion()">Shake</button>
+      <button class="shake-btn" onclick="shake()">Shake</button>
     </div>
-
-    <div class="screen" id="thinking-screen">
-      <span class="think-emoji">😐</span>
-      <div class="think-lines">
-        <span>Uh huh.</span>
-        <span>Yep.</span>
-        <span>Heard enough...</span>
-      </div>
-    </div>
-
-    <div class="screen" id="response-screen">
-      <canvas id="answer-canvas"></canvas>
-      <div class="answer-content">
-        <p class="response-text" id="resp-text"></p>
-        <button class="shake-again" onclick="goAgain()">Ask Again</button>
-      </div>
-    </div>
-
   </div>
 </div>
 
-<div class="promo-strip" id="promo-strip" style="display:none;">
-  <p class="promo-disclaimer">For entertainment purposes only</p>
-  <p class="promo-line1" id="promo-head">Quit Your Gripin'</p>
-  <a href="https://mPoPtop.com" target="_blank" class="promo-link">Get 15% Off Your Shirt</a>
-  <p class="promo-code" id="promo-code">MPopTop Code: GRIPIN15</p>
+<!-- Thinking Screen -->
+<div class="screen" id="thinking">
+  <div class="content-wrap">
+    <div class="think-content">
+      <span class="think-emoji">😐</span>
+      <div>Uh huh.</div>
+      <div>Yep.</div>
+      <div>Heard enough...</div>
+    </div>
+  </div>
 </div>
 
-<div class="bottom-credit">Outlook Not Great · A MPopTop Joint</div>
-<a class="footer-link" onclick="showPrivacy()">Privacy</a>
+<!-- Answer Screen -->
+<div class="screen" id="answer">
+  <canvas id="answer-canvas"></canvas>
+  <div class="answer-wrap">
+    <div class="answer-text" id="answer-text"></div>
+    <button class="again-btn" onclick="goAgain()">Ask Again</button>
+  </div>
+</div>
 
-<div id="privacy-screen">
+<!-- Promo Strip -->
+<div class="promo" id="promo">
+  <div class="promo-title" id="promo-title">Quit Your Gripin'</div>
+  <a href="https://mPoPtop.com" target="_blank" class="promo-link">Get 15% Off Your Shirt</a>
+  <div class="promo-code" id="promo-code">MPopTop Code: GRIPIN15</div>
+</div>
+
+<!-- Privacy Link -->
+<div class="footer" onclick="showPrivacy()">Privacy</div>
+
+<!-- Privacy Screen -->
+<div id="privacy">
   <div class="privacy-content">
-    <h2>Privacy Policy</h2>
+    <h1>Privacy Policy</h1>
     <p><strong>We don't want your data. We're not collecting it.</strong></p>
-    <p>Outlook Not Great does not collect, store, transmit, or share any personal information. We have no servers storing your questions, responses, or usage patterns.</p>
-    <p><strong>What stays on your device:</strong> The only thing saved is a temporary session record so the app knows you've already shaken it today. This never leaves your device and clears automatically.</p>
-    <p><strong>No accounts. No email. No sign-in. No tracking. No third-party analytics.</strong></p>
-    <p><strong>MPopTop:</strong> When you tap the MPopTop link you are leaving this app and visiting an external website. Their privacy policy applies there.</p>
-    <p>This app is provided for entertainment purposes only. Responses are humorous and not intended as actual advice.</p>
-    <p style="color:rgba(255,255,255,0.25); font-size:11px;">Last updated: 2025 · MPopTop</p>
-    <button class="privacy-back" onclick="hidePrivacy()">← Back</button>
+    <p>Outlook Not Great does not collect, store, transmit, or share any personal information.</p>
+    <h2>What stays on your device:</h2>
+    <p>Only a temporary session record. This never leaves your device.</p>
+    <h2>No accounts. No email. No tracking. No analytics.</h2>
+    <h2>MPopTop</h2>
+    <p>When you tap the MPopTop link you are leaving this app. Their privacy policy applies there.</p>
+    <p><strong>Entertainment purposes only.</strong> Responses are humorous and not actual advice.</p>
+    <button class="back-btn" onclick="hidePrivacy()">← Back</button>
   </div>
 </div>
 
 <script>
-// Draw large triangle for answer screen
-function drawAnswerTriangle() {
-  const canvas = document.getElementById('answer-canvas');
-  const ctx = canvas.getContext('2d');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  const W = canvas.width, H = canvas.height;
-  const cx = W / 2, cy = H / 2;
-
-  // Dark background
-  ctx.fillStyle = '#040406';
-  ctx.fillRect(0, 0, W, H);
-
-  // Subtle ambient glow
-  const bgGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W,H)*0.6);
-  bgGlow.addColorStop(0, 'rgba(20,30,80,0.3)');
-  bgGlow.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = bgGlow;
-  ctx.fillRect(0, 0, W, H);
-
-  // LARGE triangle - fills 75% of screen height
-  const triHeight = H * 0.75;
-  const triWidth = triHeight * 0.87; // Equilateral-ish proportions
-  
-  const triTop = cy - triHeight * 0.4; // Centered vertically
-  const triBot = triTop + triHeight;
-  const triLeft = cx - triWidth / 2;
-  const triRight = cx + triWidth / 2;
-
-  // Draw triangle
-  ctx.beginPath();
-  ctx.moveTo(triLeft, triTop);
-  ctx.lineTo(triRight, triTop);
-  ctx.lineTo(cx, triBot);
-  ctx.closePath();
-
-  // Gradient fill
-  const triGrad = ctx.createLinearGradient(cx, triTop, cx, triBot);
-  triGrad.addColorStop(0, '#4060f0');
-  triGrad.addColorStop(0.5, '#2040d0');
-  triGrad.addColorStop(1, '#102090');
-  ctx.fillStyle = triGrad;
-  ctx.fill();
-
-  // Inner glow
-  const glow = ctx.createRadialGradient(cx, triTop + triHeight*0.3, 0, cx, triTop + triHeight*0.35, triWidth*0.6);
-  glow.addColorStop(0, 'rgba(140,180,255,0.5)');
-  glow.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.beginPath();
-  ctx.moveTo(triLeft, triTop);
-  ctx.lineTo(triRight, triTop);
-  ctx.lineTo(cx, triBot);
-  ctx.closePath();
-  ctx.fillStyle = glow;
-  ctx.fill();
-
-  // Subtle edge highlight
-  ctx.strokeStyle = 'rgba(100,140,255,0.3)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(triLeft, triTop);
-  ctx.lineTo(triRight, triTop);
-  ctx.lineTo(cx, triBot);
-  ctx.closePath();
-  ctx.stroke();
-}
-
-window.addEventListener('resize', () => {
-  if (document.getElementById('response-screen').classList.contains('active')) {
-    drawAnswerTriangle();
-  }
-});
-
-const library = {
+const responses = {
   love: ["ewe. Cooties.","Welcome to the Broken Hearts club. Dues are high.","Did they check yes? Or No?","You're overthinking it.","Love is a decision, not a feeling.","Call your mother. She tried. You were feral.","It'll be okay. Now move on.","What did your M.A.S.H. say?","Get a grip. Plenty of fish. Next.","Their loss. Say it until you believe it.","You'll bounce back. You'll survive.","Don't chase. Don't beg.","They're not that special. Snap out of it.","Lesson learned.","They showed you who they are. Believe it.","Heartbreak happens. You'll survive. You always do.","What doesn't kill you makes you stronger.","You deserve better. Keep it moving.","Don't force it.","Fix it right or fix it twice.","Duct tape fixes everything.","You break it, you buy it.","No means no.","Not happening.","Over my dead body.","We'll see.","Maybe later.","Ask me again and the answer's still no.","Don't hold your breath.","Keep dreaming.","In your dreams.","Fat chance."],
   work: ["Your job is hard. Everyone's job is hard.","That meeting could have been an email.","Nobody got a trophy for complaining about their workload.","You survived dial-up internet and a boss who smoked indoors.","Do your best. Then go home.","Your coworker is annoying. Always. Manage accordingly.","Where is your 32 pieces of Flair?","Wax on, Wax off. Then paint the fence.","That's the gig. Welcome to the grind.","Measure twice, cut once.","Work smarter, not harder.","Nothing in life is free.","Underpromise, overdeliver.","Dress for the job you want.","Fake it till you make it.","Righty tighty, lefty loosey.","Read the instructions.","Don't burn bridges.","WD-40 if it squeaks, duct tape if it moves.","You call that work?","Back to the drawing board.","Do it again. Do it right this time.","Half-assed isn't good enough.","Take pride in your work.","Clean up your mess.","Leave it better than you found it.","Nothing worth having comes easy.","Earn it. Pay your dues.","You want it? Work for it.","Good luck with that.","Yeah, right. Sure, kid."],
   money: ["Don't quit your day job.","Save for a rainy day.","You know what's cheaper than therapy? This app.","Pay yourself first.","You get what you pay for.","Every man needs a good suit.","2 Dollars! Where's my 2 dollars!","Don't put all your eggs in one basket.","Then make it count.","Money doesn't grow on trees.","There's no such thing as a free lunch.","Don't spend it all in one place.","Nobody owes you anything.","The world doesn't revolve around you.","Get over yourself.","Check your attitude.","Do as I say, not as I do."],
   family: ["Don't bite the hand that feeds you.","Call your mother. She tried. You were feral.","Mind your manners.","Treat others how you want to be treated.","If you don't have anything nice to say, don't say anything at all.","Don't start none, won't be none.","Respect your elders.","Stay in your lane.","Be the bigger person.","Keep it to yourself.","Pick your battles.","Use the right tool for the job.","A place for everything, everything in its place.","Turn it off and back on again.","They brought you into this world…","What part of no don't you understand?","I told you so.","What did I just say?","Were you even listening?","Don't say I didn't warn you.","Go ahead, see what happens.","Suit yourself. Knock yourself out.","Live with it.","Deal with the consequences.","Welcome to the real world."],
-  general: ["Rub some dirt in it. You'll live.","Suck it up, Buttercup.","Walk it off.","Don't make me pull this car over.","Don't make me come back there.","Because I said so.","You want something to cry about?","Close the door. Were you raised in a barn?","This is why we can't have nice things.","If your friends jumped off a bridge, would you? Think for yourself.","Life isn't fair. Get used to it.","You'll understand when you're older.","Think of the starving children in Ethiopia.","You're bored? I'll find you something to do.","I'm cold. Put on a sweater.","Go play outside. You're wasting the day.","Come to the dark side, we got cookies.","Pinky swear on it.","You survived the monkey bars with no helmet. You'll survive this too.","Feral & Fabulous. You got this.","You've survived 100% of your worst days so far.","Your ancestors crossed oceans with nothing. You have Wi-Fi and a problem. You'll be fine.","The 80s called. No seatbelts, no sunscreen, no helmets. You made it anyway.","You drank from the garden hose and survived.","Latchkey kid. Figure it out.","Nobody's coming to save you. You are the cavalry.","Stop waiting until you're ready. Nobody's ever ready.","You are not behind. There is no schedule.","In 10 years this will be a funny story or something you barely remember.","You made it through the day. That counts. Sit down.","Quit your whining. Tough it out.","Deal with it. Life goes on.","Use your head. Figure it out.","Not the end of the world. You're fine.","Don't push your luck.","No excuses. Handle it. That's how it goes.","You make a better door than a window. Sit down.","Join the club.","Nobody said it'd be easy.","What did you expect?","You made your bed. Now lie in it.","Don't sweat the small stuff.","Know when to hold 'em, know when to fold 'em.","If it ain't broke, don't fix it.","Keep your chin up.","No pain, no gain.","Go big or go home.","Shit happens.","Keep it simple, stupid.","Always have a backup plan.","Go ask your mom.","Go ask your dad.","Go ask somebody else.","Figure it out yourself.","Common sense isn't so common.","Tough luck.","You'll be fine.","Build a bridge and get over it.","Cry me a river.","So what? Big deal.","Not my problem.","That tone won't get you far.","You better check yourself.","You're on thin ice.","Enough out of you.","Knock it off. Cut it out.","Give it a rest. Drop it.","Leave it alone. Let it go.","Move it or lose it.","Hurry up. We don't have all day.","What are you waiting for? Any day now.","Spit it out. Get to the point.","Wrap it up. End of story.","I don't want to hear it. Save it.","Not today. Try again.","Wrong answer. Nice try.","Better luck next time.","Close doesn't count.","Second place is first loser.","Winning isn't everything… it's the only thing.","Fix your face.","Act your age. Grow up.","Own it. Take responsibility.","That's on you. You made your choice.","Dust yourself off. Try again tomorrow.","Sleep on it. You'll feel better in the morning.","This too shall pass. Give it time.","Time heals all wounds.","Patience is a virtue.","Good things come to those who wait.","Pay attention. Look alive. Stay sharp.","That's how it goes. Sometimes you lose.","You can't win them all. Life goes on."],
+  general: ["Rub some dirt in it. You'll live.","Suck it up, Buttercup.","Walk it off.","Don't make me pull this car over.","Don't make me come back there.","Because I said so.","You want something to cry about?","Close the door. Were you raised in a barn?","This is why we can't have nice things.","If your friends jumped off a bridge, would you? Think for yourself.","Life isn't fair. Get used to it.","You'll understand when you're older.","Think of the starving children in Ethiopia.","You're bored? I'll find you something to do.","I'm cold. Put on a sweater.","Go play outside. You're wasting the day.","Come to the dark side, we got cookies.","Pinky swear on it.","You survived the monkey bars with no helmet. You'll survive this too.","Feral & Fabulous. You got this.","You've survived 100% of your worst days so far.","Your ancestors crossed oceans with nothing. You have Wi-Fi and a problem. You'll be fine.","The 80s called. No seatbelts, no sunscreen, no helmets. You made it anyway.","You drank from the garden hose and survived.","Latchkey kid. Figure it out.","Nobody's coming to save you. You are the cavalry.","Stop waiting until you're ready. Nobody's ever ready.","You are not behind. There is no schedule.","In 10 years this will be a funny story or something you barely remember.","You made it through the day. That counts. Sit down.","Quit your whining. Tough it out.","Deal with it. Life goes on.","Use your head. Figure it out.","Not the end of the world. You're fine.","Don't push your luck.","No excuses. Handle it. That's how it goes.","You make a better door than a window. Sit down.","Join the club.","Nobody said it'd be easy.","What did you expect?","You made your bed. Now lie in it.","Don't sweat the small stuff.","Know when to hold 'em, know when to fold 'em.","If it ain't broke, don't fix it.","Keep your chin up.","No pain, no gain.","Go big or go home.","Shit happens.","Keep it simple, stupid.","Always have a backup plan.","Go ask your mom.","Go ask your dad.","Go ask somebody else.","Figure it out yourself.","Common sense isn't so common.","Tough luck.","You'll be fine.","Build a bridge and get over it.","Cry me a river.","So what? Big deal.","Not my problem.","That tone won't get you far.","You better check yourself.","You're on thin ice.","Enough out of you.","Knock it off. Cut it out.","Give it a rest. Drop it.","Leave it alone. Let it go.","Move it or lose it.","Hurry up. We don't have all day.","What are you waiting for? Any day now.","Spit it out. Get to the point.","Wrap it up. End of story.","I don't want to hear it. Save it.","Not today. Try again.","Wrong answer. Nice try.","Better luck next time.","Close doesn't count.","Second place is first loser.","Winning isn't everything… it's the only thing.","Fix your face.","Act your age. Grow up.","Own it. Take responsibility.","That's on you. You made your choice.","Dust yourself off. Try again tomorrow.","Sleep on it. You'll feel better in the morning.","This too shall pass. Give it time.","Time heals all wounds.","Patience is a virtue.","Good things come to those who wait.","Pay attention. Look alive. Stay sharp.","That's how it goes. Sometimes you lose.","You can't win them all. Life goes on."]
 };
 
 const holidays = [
-  {month:1,day:4,head:"Valentine's Day is Coming",code:"LOVEISHARD — 20% Off"},
-  {month:4,day:5,head:"Tax Day is Coming",code:"TAXEDSUCKS — 20% Off"},
-  {month:4,day:21,head:"Mother's Day is Coming",code:"MOMWASRIGHT — 20% Off"},
-  {month:6,day:8,head:"Father's Day is Coming",code:"DADSURVIVED — 20% Off"},
-  {month:10,day:21,head:"Halloween is Coming",code:"SPOOKYOFF — 20% Off"},
-  {month:11,day:17,head:"Thanksgiving is Coming",code:"EATTHETURKEY — 20% Off"},
-  {month:12,day:15,head:"Christmas is Coming",code:"SOCKSAGAIN — 20% Off"},
+  {m:1,d:4,title:"Valentine's Day is Coming",code:"LOVEISHARD — 20% Off"},
+  {m:4,d:5,title:"Tax Day is Coming",code:"TAXEDSUCKS — 20% Off"},
+  {m:4,d:21,title:"Mother's Day is Coming",code:"MOMWASRIGHT — 20% Off"},
+  {m:6,d:8,title:"Father's Day is Coming",code:"DADSURVIVED — 20% Off"},
+  {m:10,d:21,title:"Halloween is Coming",code:"SPOOKYOFF — 20% Off"},
+  {m:11,d:17,title:"Thanksgiving is Coming",code:"EATTHETURKEY — 20% Off"},
+  {m:12,d:15,title:"Christmas is Coming",code:"SOCKSAGAIN — 20% Off"}
 ];
 
-function getHoliday() {
-  const now = new Date(), m = now.getMonth()+1, d = now.getDate();
-  return holidays.find(h => h.month===m && d>=h.day && d<=h.day+10);
+let selectedCategory = 'general';
+let used = {};
+
+function goTo(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  if (screenId === 'answer') drawTriangle();
 }
 
-let selectedCat = null, usedIdx = {};
-
-function selectCat(btn, cat) {
+function selectCat(cat) {
+  selectedCategory = cat;
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  selectedCat = cat;
+  event.target.classList.add('selected');
 }
 
-function detectCat(q) {
-  if (selectedCat) return selectedCat;
-  q = q.toLowerCase();
-  if (/love|heart|relation|lonely|dating|miss|broke up|ex |crush|mash/.test(q)) return 'love';
-  if (/work|job|boss|cowork|meeting|fired|career|office/.test(q)) return 'work';
-  if (/money|broke|debt|afford|rent|bills|cash|pay/.test(q)) return 'money';
-  if (/mom|dad|parent|mother|father|family|sister|brother|kid|spouse/.test(q)) return 'family';
-  return 'general';
+function shake() {
+  goTo('thinking');
+  setTimeout(() => showAnswer(), 2200);
 }
 
-function pick(cat) {
-  const pool = library[cat];
-  if (!usedIdx[cat]) usedIdx[cat] = [];
-  const avail = pool.map((_,i)=>i).filter(i=>!usedIdx[cat].includes(i));
-  const choices = avail.length>0 ? avail : pool.map((_,i)=>i);
-  if (avail.length===0) usedIdx[cat]=[];
+function showAnswer() {
+  const pool = responses[selectedCategory];
+  if (!used[selectedCategory]) used[selectedCategory] = [];
+  const avail = pool.map((_,i)=>i).filter(i=>!used[selectedCategory].includes(i));
+  const choices = avail.length > 0 ? avail : pool.map((_,i)=>i);
+  if (avail.length === 0) used[selectedCategory] = [];
   const idx = choices[Math.floor(Math.random()*choices.length)];
-  usedIdx[cat].push(idx);
-  return pool[idx];
-}
-
-// Smart text wrapping - break long answers into multiple lines
-function formatAnswer(text) {
-  const words = text.split(' ');
-  if (words.length <= 4) return text; // Short answers stay single line
+  used[selectedCategory].push(idx);
   
-  // Try to split into 2-3 lines intelligently
-  if (words.length <= 8) {
-    const mid = Math.ceil(words.length / 2);
-    return words.slice(0, mid).join(' ') + '\n' + words.slice(mid).join(' ');
+  const answer = pool[idx];
+  document.getElementById('answer-text').textContent = answer;
+  
+  const now = new Date();
+  const holiday = holidays.find(h => h.m === now.getMonth()+1 && now.getDate() >= h.d && now.getDate() <= h.d+10);
+  if (holiday) {
+    document.getElementById('promo-title').textContent = holiday.title;
+    document.getElementById('promo-code').textContent = 'MPopTop Code: ' + holiday.code;
   }
+  document.getElementById('promo').classList.add('show');
   
-  // Longer answers: try 3 lines
-  const third = Math.ceil(words.length / 3);
-  return words.slice(0, third).join(' ') + '\n' + 
-         words.slice(third, third*2).join(' ') + '\n' + 
-         words.slice(third*2).join(' ');
-}
-
-function switchBackground(bgId) {
-  document.querySelectorAll('.bg-layer').forEach(bg => bg.classList.remove('active'));
-  document.getElementById(bgId).classList.add('active');
-}
-
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  
-  // Switch backgrounds based on screen
-  if (id === 'welcome-screen') switchBackground('bg-welcome');
-  else if (id === 'ask-screen') switchBackground('bg-ask');
-  else if (id === 'thinking-screen') switchBackground('bg-thinking');
-  else if (id === 'response-screen') {
-    switchBackground('bg-answer');
-    drawAnswerTriangle();
-  }
-}
-
-function askQuestion() {
-  showScreen('thinking-screen');
-  setTimeout(()=>{ showResponse(pick(detectCat(''))); }, 2200);
-}
-
-function showResponse(msg) {
-  const formatted = formatAnswer(msg);
-  document.getElementById('resp-text').textContent = formatted;
-  const h = getHoliday();
-  document.getElementById('promo-head').textContent = h ? h.head : "Quit Your Gripin'";
-  document.getElementById('promo-code').textContent = 'MPopTop Code: ' + (h ? h.code : 'GRIPIN15');
-  document.getElementById('promo-strip').style.display = 'block';
-  showScreen('response-screen');
+  goTo('answer');
 }
 
 function goAgain() {
-  selectedCat = null;
-  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('selected'));
-  document.getElementById('promo-strip').style.display = 'none';
-  showScreen('ask-screen');
+  document.getElementById('promo').classList.remove('show');
+  selectedCategory = 'general';
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+  goTo('ask');
 }
 
-function showPrivacy() { document.getElementById('privacy-screen').classList.add('show'); }
-function hidePrivacy() { document.getElementById('privacy-screen').classList.remove('show'); }
+function drawTriangle() {
+  const canvas = document.getElementById('answer-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w / 2;
+  const cy = h / 2;
+  
+  ctx.fillStyle = '#040406';
+  ctx.fillRect(0, 0, w, h);
+  
+  const triH = h * 0.7;
+  const triW = triH * 0.9;
+  const top = cy - triH * 0.35;
+  const bot = top + triH;
+  const left = cx - triW / 2;
+  const right = cx + triW / 2;
+  
+  ctx.beginPath();
+  ctx.moveTo(left, top);
+  ctx.lineTo(right, top);
+  ctx.lineTo(cx, bot);
+  ctx.closePath();
+  
+  const grad = ctx.createLinearGradient(cx, top, cx, bot);
+  grad.addColorStop(0, '#4060f0');
+  grad.addColorStop(0.5, '#2040d0');
+  grad.addColorStop(1, '#102090');
+  ctx.fillStyle = grad;
+  ctx.fill();
+  
+  ctx.strokeStyle = 'rgba(100,140,255,0.3)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function showPrivacy() {
+  document.getElementById('privacy').classList.add('show');
+}
+
+function hidePrivacy() {
+  document.getElementById('privacy').classList.remove('show');
+}
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('answer').classList.contains('active')) {
+    drawTriangle();
+  }
+});
 </script>
+
 </body>
 </html>
