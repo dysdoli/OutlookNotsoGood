@@ -99,7 +99,7 @@
   }
   .shake-again:hover { background: rgba(0,0,0,0.8); border-color: #fff; }
 
-  .promo-strip { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); width: min(290px, 80vw); background: rgba(0,0,0,0.88); border: 1px solid rgba(255,255,255,0.1); padding: 7px 12px 9px; text-align: center; z-index: 10; }
+  .promo-strip { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); width: min(290px, 80vw); background: rgba(0,0,0,0.88); border: 1px solid rgba(255,255,255,0.1); padding: 7px 12px 9px; text-align: center; z-index: 100; }
   .promo-disclaimer { font-family: 'Oswald', sans-serif; font-size: 7px; color: rgba(255,255,255,0.18); letter-spacing: 2px; text-transform: uppercase; font-weight: 200; margin-bottom: 5px; }
   .promo-line1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(15px, 3.8vw, 19px); color: #f0ece4; margin-bottom: 4px; letter-spacing: 3px; }
   .promo-link { display: block; padding: 6px 16px; background: #f0ece4; color: #111; font-family: 'Oswald', sans-serif; font-size: clamp(9px, 1.8vw, 11px); letter-spacing: 2px; text-transform: uppercase; font-weight: 700; text-decoration: none; transition: all 0.2s; margin: 0 auto 5px; width: fit-content; }
@@ -132,8 +132,8 @@
 <div class="scene">
   <div class="triangle-content">
 
-    <div class="screen active" id="welcome-screen">
-      <button class="begin-btn" onclick="showScreen('ask-screen')">Begin</button>
+    <div class="screen active" id="welcome-screen" onclick="showScreen('ask-screen')" style="cursor: pointer;">
+      <!-- Click anywhere to continue -->
     </div>
 
     <div class="screen" id="ask-screen">
