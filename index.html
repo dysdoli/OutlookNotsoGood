@@ -58,10 +58,12 @@
   .think-lines span:nth-child(3) { animation-delay: 1.2s; }
   @keyframes fadein { to { opacity:1; } }
 
-  /* Answer screen with LARGE triangle */
-  #response-screen { position: relative; width: 100%; height: 100%; }
-  #answer-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
-  .answer-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; }
+  /* Answer screen — lives OUTSIDE .triangle-content, truly full-screen */
+  #response-screen { display: none; position: fixed; inset: 0; z-index: 20; }
+  #response-screen.active { display: block; animation: pop 0.35s cubic-bezier(0.22,0.61,0.36,1) forwards; }
+  #answer-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .answer-content { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 110px; pointer-events: none; }
+  .answer-content > * { pointer-events: auto; }
   
   .response-text { 
     font-family: 'Bebas Neue', sans-serif; 
@@ -156,13 +158,14 @@
       </div>
     </div>
 
-    <div class="screen" id="response-screen">
-      <canvas id="answer-canvas"></canvas>
-      <div class="answer-content">
-        <button class="shake-again" onclick="goAgain()">Ask Again</button>
-      </div>
-    </div>
+  </div><!-- end .triangle-content -->
+</div><!-- end .scene -->
 
+<!-- Response screen is full-screen, outside triangle-content so canvas gets true viewport dimensions -->
+<div id="response-screen">
+  <canvas id="answer-canvas"></canvas>
+  <div class="answer-content">
+    <button class="shake-again" onclick="goAgain()">Ask Again</button>
   </div>
 </div>
 
@@ -191,7 +194,7 @@
 </div>
 
 <script>
-// Wrap text to fit within a max pixel width on canvas
+// Wrap text to fit a max pixel width
 function wrapCanvasText(ctx, text, maxWidth) {
   const words = text.split(' ');
   const lines = [];
@@ -211,35 +214,39 @@ function wrapCanvasText(ctx, text, maxWidth) {
 
 let currentAnswer = '';
 
-// Draw large triangle for answer screen, with text rendered inside it
 function drawAnswerTriangle(text) {
   const canvas = document.getElementById('answer-canvas');
   const ctx = canvas.getContext('2d');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  const W = canvas.width, H = canvas.height;
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  canvas.width = W;
+  canvas.height = H;
   const cx = W / 2, cy = H / 2;
 
   // Dark background
   ctx.fillStyle = '#040406';
   ctx.fillRect(0, 0, W, H);
 
-  // Subtle ambient glow
-  const bgGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W,H)*0.6);
+  // Ambient glow
+  const bgGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.6);
   bgGlow.addColorStop(0, 'rgba(20,30,80,0.3)');
   bgGlow.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = bgGlow;
   ctx.fillRect(0, 0, W, H);
 
-  // Large equilateral triangle (flat top, apex at bottom) — 88% of screen height
-  const triHeight = H * 0.88;
-  const triWidth = triHeight * (2 / Math.sqrt(3)); // true equilateral
-  const triTop = cy - triHeight * 0.44;
-  const triBot = triTop + triHeight;
-  const triLeft = cx - triWidth / 2;
-  const triRight = cx + triWidth / 2;
+  // True equilateral triangle — size it to fill the screen
+  // Constrained by both width and height so it's never clipped
+  const maxByWidth  = W * 0.92;
+  const maxByHeight = H * 0.88 * (2 / Math.sqrt(3)); // convert height limit → width
+  const triWidth  = Math.min(maxByWidth, maxByHeight);
+  const triHeight = triWidth * (Math.sqrt(3) / 2);   // true equilateral height
 
-  // Build triangle path (reused multiple times)
+  // Center vertically, nudge up slightly so apex doesn't crowd the promo strip
+  const triTop  = cy - triHeight * 0.46;
+  const triBot  = triTop + triHeight;
+  const triLeft = cx - triWidth / 2;
+  const triRight= cx + triWidth / 2;
+
   function triPath() {
     ctx.beginPath();
     ctx.moveTo(triLeft, triTop);
@@ -248,64 +255,85 @@ function drawAnswerTriangle(text) {
     ctx.closePath();
   }
 
-  // Gradient fill
+  // Fill
   const triGrad = ctx.createLinearGradient(cx, triTop, cx, triBot);
-  triGrad.addColorStop(0, '#4060f0');
+  triGrad.addColorStop(0,   '#4060f0');
   triGrad.addColorStop(0.5, '#2040d0');
-  triGrad.addColorStop(1, '#102090');
+  triGrad.addColorStop(1,   '#102090');
   triPath(); ctx.fillStyle = triGrad; ctx.fill();
 
   // Inner glow
-  const glow = ctx.createRadialGradient(cx, triTop + triHeight*0.28, 0, cx, triTop + triHeight*0.3, triWidth*0.5);
+  const glow = ctx.createRadialGradient(cx, triTop + triHeight * 0.25, 0, cx, triTop + triHeight * 0.28, triWidth * 0.48);
   glow.addColorStop(0, 'rgba(140,180,255,0.5)');
   glow.addColorStop(1, 'rgba(0,0,0,0)');
   triPath(); ctx.fillStyle = glow; ctx.fill();
 
-  // Edge highlight
+  // Edge
   triPath();
-  ctx.strokeStyle = 'rgba(100,140,255,0.3)';
+  ctx.strokeStyle = 'rgba(100,140,255,0.35)';
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // ── Render text inside triangle ──────────────────────────────
-  // Text lives in the upper portion of the triangle where it's widest.
-  // We position the text block starting at ~20% down from triTop,
-  // and limit line width to the triangle's available width at the 
-  // vertical midpoint of the text block (conservative — keeps text clear of edges).
-
   if (!text) return;
 
-  const textBlockTopDY = triHeight * 0.12;   // 12% down from triangle top
-  const textBlockMidDY = triHeight * 0.30;   // estimate mid of text block
-  // Available triangle width at textBlockMidDY (narrows toward apex)
-  const triWidthAtMid = triWidth * (1 - textBlockMidDY / triHeight);
-  const maxLineWidth = triWidthAtMid * 0.72; // 72% for comfortable margin
+  // ── Text confined inside triangle ───────────────────────────
+  // The triangle narrows from triWidth at y=triTop to 0 at y=triBot.
+  // Width available at fractional depth f (0=top,1=apex) = triWidth*(1-f).
+  //
+  // We place the text block centered around depth f=0.28 (upper third).
+  // To guarantee NO line overflows, we measure each line's Y position and
+  // clamp its max width to the triangle width at that exact row.
+  // We also use a safe margin factor of 0.78 on top of the geometric limit.
 
-  // Auto-size font: start at max, shrink until all lines fit comfortably
-  let fontSize = Math.min(W * 0.055, 38);
+  const MARGIN = 0.78;
+  const TEXT_CENTER_F = 0.28; // fractional depth of text block center
+
+  // Start font size large, shrink until block fits vertically in top 50%
+  let fontSize = Math.min(W * 0.06, H * 0.07, 48);
   let lines;
-  while (fontSize >= 13) {
+
+  while (fontSize >= 12) {
     ctx.font = `700 ${fontSize}px 'Bebas Neue', sans-serif`;
-    lines = wrapCanvasText(ctx, text.toUpperCase(), maxLineWidth);
+
+    // Max width at the center of the text block
+    const safeWidth = triWidth * (1 - TEXT_CENTER_F) * MARGIN;
+    lines = wrapCanvasText(ctx, text.toUpperCase(), safeWidth);
+
     const totalH = lines.length * fontSize * 1.3;
-    if (totalH <= triHeight * 0.52) break;
-    fontSize -= 1.5;
+    if (totalH <= triHeight * 0.48) break;
+    fontSize -= 2;
   }
 
-  const lineHeight = fontSize * 1.3;
-  const totalTextH = lines.length * lineHeight;
-  // Center the text block vertically in the upper 45% of the triangle
-  const textCenterY = triTop + triHeight * 0.26;
-  const textStartY = textCenterY - totalTextH / 2;
+  const lineH = fontSize * 1.3;
+  const totalTextH = lines.length * lineH;
+  const blockCenterY = triTop + triHeight * TEXT_CENTER_F;
+  const textStartY   = blockCenterY - totalTextH / 2;
 
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'center';
+  ctx.fillStyle    = '#ffffff';
+  ctx.textAlign    = 'center';
   ctx.textBaseline = 'top';
-  ctx.shadowColor = 'rgba(0,0,40,0.85)';
-  ctx.shadowBlur = 10;
+  ctx.shadowColor  = 'rgba(0,0,40,0.9)';
+  ctx.shadowBlur   = 12;
+
   lines.forEach((line, i) => {
-    ctx.fillText(line, cx, textStartY + i * lineHeight);
+    const lineY = textStartY + i * lineH;
+    // Double-check: clip line to the actual triangle width at this Y
+    const depthF = (lineY - triTop) / triHeight;
+    const maxW   = triWidth * (1 - depthF) * MARGIN;
+    // Scale down font inline if a single word is still too wide
+    ctx.font = `700 ${fontSize}px 'Bebas Neue', sans-serif`;
+    const lineW = ctx.measureText(line).width;
+    if (lineW > maxW) {
+      const scale = maxW / lineW;
+      ctx.save();
+      ctx.transform(scale, 0, 0, 1, cx * (1 - scale), 0);
+      ctx.fillText(line, cx, lineY);
+      ctx.restore();
+    } else {
+      ctx.fillText(line, cx, lineY);
+    }
   });
+
   ctx.shadowBlur = 0;
 }
 
@@ -391,16 +419,20 @@ function switchBackground(bgId) {
 }
 
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  
-  // Switch backgrounds based on screen
-  if (id === 'welcome-screen') switchBackground('bg-welcome');
-  else if (id === 'ask-screen') switchBackground('bg-ask');
-  else if (id === 'thinking-screen') switchBackground('bg-thinking');
-  else if (id === 'response-screen') {
+  // Hide response overlay whenever switching screens
+  document.getElementById('response-screen').classList.remove('active');
+
+  if (id === 'response-screen') {
+    // Don't touch .screen elements — just show the full-screen overlay
     switchBackground('bg-answer');
-    drawAnswerTriangle(currentAnswer);
+    document.getElementById('response-screen').classList.add('active');
+    document.fonts.ready.then(() => drawAnswerTriangle(currentAnswer));
+  } else {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (id === 'welcome-screen') switchBackground('bg-welcome');
+    else if (id === 'ask-screen') switchBackground('bg-ask');
+    else if (id === 'thinking-screen') switchBackground('bg-thinking');
   }
 }
 
