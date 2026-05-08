@@ -26,7 +26,7 @@
   .triangle-content > * { pointer-events: auto; }
   
   .screen { display: none; }
-  .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; position: fixed; inset: 0; z-index: 2; animation: pop 0.35s cubic-bezier(0.22,0.61,0.36,1) forwards; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; width: 100%; animation: pop 0.35s cubic-bezier(0.22,0.61,0.36,1) forwards; }
   @keyframes pop { from { opacity:0; transform:scale(0.94); } to { opacity:1; transform:scale(1); } }
 
   .logo-wrap { margin-bottom: 4px; line-height: 1; }
@@ -37,19 +37,6 @@
   .entertainment-notice { position: fixed; top: 14px; left: 0; right: 0; text-align: center; font-family: 'Oswald', sans-serif; font-size: clamp(9px, 2vw, 11px); color: rgba(255,255,255,0.75); letter-spacing: 4px; text-transform: uppercase; font-weight: 300; z-index: 5; pointer-events: none; }
   .begin-btn { padding: 11px 26px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.4); color: #ffffff; font-family: 'Oswald', sans-serif; font-size: clamp(11px, 2.5vw, 13px); letter-spacing: 3px; text-transform: uppercase; cursor: pointer; font-weight: 400; transition: all 0.2s; }
   .begin-btn:hover { background: rgba(0,0,0,0.8); }
-  
-  .invisible-btn { 
-    position: absolute; 
-    bottom: 18%; 
-    left: 50%; 
-    transform: translateX(-50%); 
-    width: 280px; 
-    height: 60px; 
-    background: transparent; 
-    border: none; 
-    cursor: pointer; 
-    z-index: 10;
-  }
 
   .ask-label { font-family: 'Oswald', sans-serif; font-size: clamp(10px, 2.2vw, 12px); letter-spacing: 3px; color: rgba(255,255,255,0.85); text-transform: uppercase; font-weight: 300; margin-bottom: 10px; }
   .ask-invite { font-family: 'Special Elite', cursive; font-size: clamp(18px, 4.5vw, 24px); color: rgba(255,255,255,0.95); text-align: center; margin-bottom: 6px; }
@@ -75,7 +62,7 @@
   #response-screen { display: none; position: fixed; inset: 0; z-index: 20; }
   #response-screen.active { display: block; animation: pop 0.35s cubic-bezier(0.22,0.61,0.36,1) forwards; }
   #answer-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-  .answer-content { position: absolute; top: 0; left: 0; right: 0; bottom: 140px; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+  .answer-content { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 110px; pointer-events: none; }
   .answer-content > * { pointer-events: auto; }
   
   .response-text { 
@@ -112,7 +99,7 @@
   }
   .shake-again:hover { background: rgba(0,0,0,0.8); border-color: #fff; }
 
-  .promo-strip { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); width: min(290px, 80vw); background: rgba(0,0,0,0.88); border: 1px solid rgba(255,255,255,0.1); padding: 7px 12px 9px; text-align: center; z-index: 100; }
+  .promo-strip { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); width: min(290px, 80vw); background: rgba(0,0,0,0.88); border: 1px solid rgba(255,255,255,0.1); padding: 7px 12px 9px; text-align: center; z-index: 2; }
   .promo-disclaimer { font-family: 'Oswald', sans-serif; font-size: 7px; color: rgba(255,255,255,0.18); letter-spacing: 2px; text-transform: uppercase; font-weight: 200; margin-bottom: 5px; }
   .promo-line1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(15px, 3.8vw, 19px); color: #f0ece4; margin-bottom: 4px; letter-spacing: 3px; }
   .promo-link { display: block; padding: 6px 16px; background: #f0ece4; color: #111; font-family: 'Oswald', sans-serif; font-size: clamp(9px, 1.8vw, 11px); letter-spacing: 2px; text-transform: uppercase; font-weight: 700; text-decoration: none; transition: all 0.2s; margin: 0 auto 5px; width: fit-content; }
@@ -135,7 +122,7 @@
 <body>
 
 <!-- Background layers -->
-<div class="bg-layer active" id="bg-welcome" onclick="showScreen('ask-screen')" style="cursor: pointer;"></div>
+<div class="bg-layer active" id="bg-welcome"></div>
 <div class="bg-layer" id="bg-ask"></div>
 <div class="bg-layer" id="bg-thinking"></div>
 <div class="bg-layer" id="bg-answer"></div>
@@ -145,9 +132,7 @@
 <div class="scene">
   <div class="triangle-content">
 
-    <div class="screen active" id="welcome-screen">
-      <button class="invisible-btn" onclick="showScreen('ask-screen')"></button>
-    </div>
+    <div class="screen active" id="welcome-screen" onclick="showScreen('ask-screen')" style="cursor:pointer; width:100vw; height:100vh; position:fixed; inset:0;"></div>
 
     <div class="screen" id="ask-screen">
       <p class="ask-invite">Close your eyes.</p>
@@ -178,16 +163,14 @@
 <div id="response-screen">
   <canvas id="answer-canvas"></canvas>
   <div class="answer-content">
-    <p class="response-text" id="resp-text"></p>
     <button class="shake-again" onclick="goAgain()">Ask Again</button>
   </div>
-</div>
-
-<div class="promo-strip" id="promo-strip" style="display:none;">
-  <p class="promo-disclaimer">For entertainment purposes only</p>
-  <p class="promo-line1" id="promo-head">Quit Your Gripin'</p>
-  <a href="https://mPoPtop.com" target="_blank" class="promo-link">Get 15% Off Your Shirt</a>
-  <p class="promo-code" id="promo-code">MPopTop Code: GRIPIN15</p>
+  <div class="promo-strip" id="promo-strip">
+    <p class="promo-disclaimer">For entertainment purposes only</p>
+    <p class="promo-line1" id="promo-head">Quit Your Gripin'</p>
+    <a href="https://mPoPtop.com" target="_blank" class="promo-link">Get 15% Off Your Shirt</a>
+    <p class="promo-code" id="promo-code">MPopTop Code: GRIPIN15</p>
+  </div>
 </div>
 
 <div class="bottom-credit">Outlook Not Great · A MPopTop Joint</div>
@@ -458,12 +441,9 @@ function askQuestion() {
 
 function showResponse(msg) {
   currentAnswer = msg;
-  const el = document.getElementById('resp-text');
-  if (el) el.textContent = '';
   const h = getHoliday();
   document.getElementById('promo-head').textContent = h ? h.head : "Quit Your Gripin'";
   document.getElementById('promo-code').textContent = 'MPopTop Code: ' + (h ? h.code : 'GRIPIN15');
-  document.getElementById('promo-strip').style.display = 'block';
   showScreen('response-screen');
 }
 
@@ -471,7 +451,6 @@ function goAgain() {
   selectedCat = null;
   document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('selected'));
   document.getElementById('user-question').value = '';
-  document.getElementById('promo-strip').style.display = 'none';
   showScreen('ask-screen');
 }
 
