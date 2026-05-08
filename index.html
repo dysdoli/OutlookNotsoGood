@@ -37,6 +37,19 @@
   .entertainment-notice { position: fixed; top: 14px; left: 0; right: 0; text-align: center; font-family: 'Oswald', sans-serif; font-size: clamp(9px, 2vw, 11px); color: rgba(255,255,255,0.75); letter-spacing: 4px; text-transform: uppercase; font-weight: 300; z-index: 5; pointer-events: none; }
   .begin-btn { padding: 11px 26px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.4); color: #ffffff; font-family: 'Oswald', sans-serif; font-size: clamp(11px, 2.5vw, 13px); letter-spacing: 3px; text-transform: uppercase; cursor: pointer; font-weight: 400; transition: all 0.2s; }
   .begin-btn:hover { background: rgba(0,0,0,0.8); }
+  
+  .invisible-btn { 
+    position: absolute; 
+    bottom: 18%; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    width: 280px; 
+    height: 60px; 
+    background: transparent; 
+    border: none; 
+    cursor: pointer; 
+    z-index: 10;
+  }
 
   .ask-label { font-family: 'Oswald', sans-serif; font-size: clamp(10px, 2.2vw, 12px); letter-spacing: 3px; color: rgba(255,255,255,0.85); text-transform: uppercase; font-weight: 300; margin-bottom: 10px; }
   .ask-invite { font-family: 'Special Elite', cursive; font-size: clamp(18px, 4.5vw, 24px); color: rgba(255,255,255,0.95); text-align: center; margin-bottom: 6px; }
@@ -132,8 +145,8 @@
 <div class="scene">
   <div class="triangle-content">
 
-    <div class="screen active" id="welcome-screen" onclick="showScreen('ask-screen')" style="cursor: pointer;">
-      <!-- Click anywhere to continue -->
+    <div class="screen active" id="welcome-screen">
+      <button class="invisible-btn" onclick="showScreen('ask-screen')"></button>
     </div>
 
     <div class="screen" id="ask-screen">
